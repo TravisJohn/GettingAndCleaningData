@@ -1,0 +1,16 @@
+CodeBook
+
+1. xtrain - a temporary string holder for the file path
+2. xt - a variable name to hold the train data
+3. xtrainf - a temporary string holder for the file path
+4. xtf -a variable name to hold the train features
+5. xtest -a temporary string holder for the file path
+6. xts - a variable name to hold the test data
+7. ytest -a temporary string holder for the file path
+8. testdataset - the combination of the data and the key rows
+9. dataset - the combination of the test and the train data with their key rows
+10. lbl - the activity description
+11. f - a temporary variable to hold a pre-clean file that has a duplicate column name and noise
+12. cf1 - a temporary variable to hold the column names to use for conditional extraction
+13. final - the final dataset clean and without unwanted columns
+14. final1 - the group by version with average function of the final dataset
