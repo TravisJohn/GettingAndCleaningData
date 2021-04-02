@@ -1,0 +1,112 @@
+/* R Script requirement
+This is the required R script and I enumerate the block process comment related to each requirement to guide you in checking
+1. Merge the training and the test sets to create one dataset - DONE
+#> extract the x train data
+#> extract the y train data
+#> attaching the features to the data
+#> extract the x test data
+#> extract the y test data
+#> attaching the features to the data
+#> joining them to form one data set (train + test) in vertical manner
+#> activity label extraction and data type manipulation
+#> merging dataset by their common field V1
+#> changing the data type of each column
+2. Extracts only measurement on the mean and the standard deviation for each measurement
+#> getting the mean and std deviations measures only
+3. Uses descriptive activity names to name the activities in the dataset
+#> activity label extraction and data type manipulation
+#> merging dataset by their common field V1
+4. Appropriately labels the dataset with descriptive variable names
+#> #cleaning the column name of features dataset
+5. From the data set in step 4 create a second, independent dataset with the average of each variable for each activity and each subject
+#> create an independent tidy set that shows the average of each variable
+*/
+  
+  
+  
+  #-----------------------------------------------------------importing libraries
+  library(dplyr)
+library(magrittr)
+
+
+#-----------------------------------------------------------extract the x train data
+xtrain <- "C:\\YOURFILEPATHHERE\\X_train.txt"
+xt<-read.csv2(xtrain, header=F, sep="")
+
+#extract the x train data features and clean
+xtrainf <- "C:\\YOURFILEPATHHERE\\features.txt"
+xtf <-read.csv2(xtrainf, sep="", header=F)
+#renaming the column name of features dataset
+xtf <- rename(xtf,index= V1, description= V2)
+xtf <-select(xtf,description)
+xtf<-tolower(xtf$description)
+#cleaning the column name of features dataset
+xtf<-gsub("-","_",xtf)
+xtf<-gsub("\\(","",xtf)
+xtf<-gsub("\\)","",xtf)
+xtf<-gsub(",","-",xtf)
+
+#-------------------------------------------------------------extract the y train data
+ytrain <- "C:\\YOURFILEPATHHERE\\y_train.txt"
+yt<-read.csv2(ytrain, header=F, sep="")
+
+
+#-------------------------------------------------------------attaching the features to the data
+names(xt) <- xtf
+trainingdataaset<-cbind(yt,xt)
+
+
+#-------------------------------------------------------------extract the x test data
+xtest <- "C:\\YOURFILEPATHHERE\\X_test.txt"
+xts<-read.csv2(xtest, header=F, sep="")
+
+#-------------------------------------------------------------extract the y test data
+ytest <- "C:\\YOURFILEPATHHERE\\y_test.txt"
+yts<-read.csv2(ytest, header=F, sep="")
+
+#-------------------------------------------------------------attaching the features to the data
+names(xts) <- xtf
+testdataaset<-cbind(yts,xts)
+
+
+#-------------------------------------------------------------joining them to form one data set (train + test) in vertical manner
+dataset<-rbind(trainingdataaset,testdataaset)
+#deleting the duplicate column
+dataset <- dataset[, !duplicated(colnames(dataset))]
+
+
+#-------------------------------------------------------------activity label extraction and data type manipulation
+lbl <- "C:\\YOURFILEPATHHERE\\activity_labels.txt"
+lbl<-read.csv2(lbl, header=F, sep="")
+#data type manipulation
+lbl$V1<-as.character(lbl$V1)
+dataset$V1 <- as.character(dataset$V1)
+
+
+#-------------------------------------------------------------merging dataset by their common field V1
+f<-merge(x=dataset,y=lbl,by="V1",sort=F)
+# giving a more descriptive column name and arranging them
+names(f)[names(f)=="V1"] <- "ActivityLabel"
+names(f)[names(f)=="V2"] <- "ActivityDescription"
+#rearranging the labels
+f<-select(f,ActivityLabel,ActivityDescription,everything())
+f$ActivityDescription <- as.character(f$ActivityDescription) 
+
+
+#-------------------------------------------------------------changing the data type of each column
+f1<-f %>% 
+  mutate_each(funs(if(is.factor(.)) as.integer(.) else .))
+str(f1)
+
+
+
+#-------------------------------------------------------------getting the mean and std deviations measures only
+cf1 <- colnames(f1)
+#selecting the activity label and description plus the measures that have mean and std 
+final<-f1[cf1 == "ActivityLabel" | cf1 == "ActivityDescription" | grepl("mean",cf1) |grepl("std",cf1) ]
+
+#-------------------------------------------------------------create an independent tidy set that shows the average of each variable
+final1<-final%>%
+  group_by(ActivityDescription,ActivityLabel) %>%
+  summarise_all(funs(mean))
+final1
